@@ -62,5 +62,6 @@
   (room-details%))
 
 (hunchentoot:define-easy-handler (run-gc :uri "/data/run-gc") ()
-  (sb-ext:gc)
-  (room-details%))
+  #+sbcl(sb-ext:gc)
+  #+sbcl(room-details%)
+  #-sbcl(format nil "Garbage collection button only works for SBCL for now, sorry!"))
