@@ -38,10 +38,12 @@
   (json-list (list-all-packages)
              :mapcar #'package-name))
 
-(defjson package-symbols (package)
-  (let (sx) 
-    (do-external-symbols (s (find-package package)) 
-      (push s sx)) 
+(defjson package-symbols (package all)
+  (let ((sx) 
+        (package (find-package package))) 
+    (if (string= all "true")
+      (do-symbols (s package) (push s sx))
+      (do-external-symbols (s package) (push s sx))) 
     (json-list sx)))
 
 (hunchentoot:define-easy-handler (describe-symbol :uri "/data/describe-symbol")

@@ -18,6 +18,7 @@
       data: {
         summary: {},
         room: {},
+        includeAllAccessable: false,
         features: [],
         packages: [],
         selectedPackage: [],
@@ -49,20 +50,29 @@
           this.$http.get('/data/all-packages').then(function (res) {
             that.packages = res.body;
           });
+        },
+        loadSymbols: function () {
+          var that = this;
+          console.log('LOAD SYMBOLS');
+          this.$http.get('/data/package-symbols?package=' + this.selectedPackage + '&all=' + this.includeAllAccessable).then(function (res) {
+            that.packageSymbols = res.body;
+          });
         }
       },
       watch: {
         selectedPackage: function (val) {
-          var that = this;
-          this.$http.get('/data/package-symbols?package=' + val).then(function (res) {
-            that.packageSymbols = res.body;
-          });
+          console.log(val);
+          console.log(this.selectedPackage);
+          this.loadSymbols();
         },
         selectedSymbol: function (val) {
           var that = this;
           this.$http.get('/data/describe-symbol?package=' + this.selectedPackage + '&symbol=' + val).then(function (res) {
             that.symbolDescription = res.body;
           });
+        },
+        includeAllAccessable: function (val) {
+          this.loadSymbols();
         }
       },
       mounted: function () {
@@ -124,12 +134,18 @@
   (with-html-output (s)
     (:div :class "row"
       (:div :class "col-md-6"
+        (:h4 (str "Packages"))
         (packages-view s))
       (:div :class "col-md-6"
+        (:h4 (str "Symbols in package ")
+          (:small
+            (:input :type "checkbox" :v-model "includeAllAccessable")
+            (str "include all accessible")))
         (package-symbols-view s)))
     (:div :class "row"
       (:div :class "col-md-12"
-        (:pre (str "{{ symbolDescription }}"))))))
+        (:pre :style "margin-top: 10px;" 
+          (str "{{ symbolDescription }}"))))))
 
 (define-easy-handler (index :uri "/") ()
   (with-html-output-to-string (s)
