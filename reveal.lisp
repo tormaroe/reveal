@@ -16,6 +16,8 @@
     var revealApp = new Vue({
       el: '#revealApp',
       data: {
+        summary: {},
+        room: {},
         features: [],
         packages: [],
         selectedPackage: [],
@@ -24,6 +26,18 @@
         symbolDescription: ''
       },
       methods: {
+        loadSummary: function () {
+          var that = this;
+          this.$http.get('/data/summary').then(function (res) {
+            that.summary = res.body;
+          });
+        },
+        loadRoom: function () {
+          var that = this;
+          this.$http.get('/data/room').then(function (res) {
+            that.room = res.body;
+          });
+        },
         loadFeatures: function () {
           var that = this;
           this.$http.get('/data/features').then(function (res) {
@@ -52,11 +66,38 @@
         }
       },
       mounted: function () {
+        this.loadSummary();
+        this.loadRoom();
         this.loadFeatures();
         this.loadAllPackages();
       },
     });
     " s))
+
+(defun image-details-view (s)
+  (with-html-output (s)
+    (:div :class "row"
+      (:table :class "table table-striped"
+        (:tr (:td (:b (str "lisp-implementation-type")))
+             (:td (str "{{ summary['lisp-implementation-type'] }}")))
+        (:tr (:td (:b (str "lisp-implementation-version")))
+             (:td (str "{{ summary['lisp-implementation-version'] }}")))
+        (:tr (:td (:b (str "machine-instance")))
+             (:td (str "{{ summary['machine-instance'] }}")))
+        (:tr (:td (:b (str "machine-type")))
+             (:td (str "{{ summary['machine-type'] }}")))
+        (:tr (:td (:b (str "machine-version")))
+             (:td (str "{{ summary['machine-version'] }}")))
+        (:tr (:td (:b (str "software-type")))
+             (:td (str "{{ summary['software-type'] }}")))
+        (:tr (:td (:b (str "software-version")))
+             (:td (str "{{ summary['software-version'] }}")))))
+    (:div :class "row"
+
+      (:pre 
+        (:a :class "pull-right" :href "#" :|v-on:click| "loadRoom"
+          (:span :class "glyphicon glyphicon-refresh" :aria-hidden "true"))
+        (str "{{ room }}")))))
 
 (defun features-view (s)
   (with-html-output (s)
@@ -104,11 +145,15 @@
           (:div 
             (:ul :id "myTabs" :class "nav nav-tabs" :role "tablist"
               (:li :role "presentation" :class "active"
+                (:a :href "#image" :role "tab" :data-toggle "tab" (str "Image details")))
+              (:li :role "presentation"
                 (:a :href "#symbols" :role "tab" :data-toggle "tab" (str "Symbol browser")))
               (:li :role "presentation"
                 (:a :href "#features" :role "tab" :data-toggle "tab" (str "Features"))))
             (:div :class "tab-content"
-              (:div :role "tabpanel" :class "tab-pane active" :id "symbols" 
+              (:div :role "tabpanel" :class "tab-pane active" :id "image" 
+                (image-details-view s))
+              (:div :role "tabpanel" :class "tab-pane" :id "symbols" 
                 (package-browser s))
               (:div :role "tabpanel" :class "tab-pane" :id "features" 
                 (features-view s))))

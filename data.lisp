@@ -13,6 +13,24 @@
 
 ;;;
 
+(defun valid-out (x)
+  "Protect against values not suitable for my simple json generator."
+  (typecase x
+    (null "nil")
+    (t x)))
+
+(defjson summary ()
+  (format nil "{~{~a~^,~}}"
+    (mapcar (lambda (pair)
+              (format nil "~s: ~s" (car pair) (valid-out (cdr pair))))
+            `(("lisp-implementation-type" . ,(lisp-implementation-type))
+              ("lisp-implementation-version" . ,(lisp-implementation-version))
+              ("machine-instance" . ,(machine-instance))
+              ("machine-type" . ,(machine-type))
+              ("machine-version" . ,(machine-version))
+              ("software-type" . ,(software-type))
+              ("software-version" . ,(software-version))))))
+
 (defjson features ()
   (json-list *features*))
 
@@ -32,3 +50,8 @@
   (let ((symbol (find-symbol symbol package)))
     (with-output-to-string (stream)
       (describe symbol stream))))
+
+(hunchentoot:define-easy-handler (room-details :uri "/data/room") ()
+  (setf (hunchentoot:content-type*) "text/plain")
+  (with-output-to-string (*standard-output*)
+    (room)))
