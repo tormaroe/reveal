@@ -6,21 +6,29 @@
        (setf (hunchentoot:content-type*) "application/json")
        ,@body)))
 
+(defun json-list (data &key (sort 'string-lessp) (mapcar 'string))
+  (format nil "[~{~s~^,~}]" 
+    (sort (mapcar mapcar data) 
+          sort)))
+
+;;;
 
 (defjson features ()
-  (format nil "[~{~s~^,~}]"
-          (sort (mapcar #'string *features*)
-                #'string-lessp)))
+  (json-list *features*))
 
 (defjson all-packages ()
-  (format nil "[~{~s~^,~}]"
-          (sort (mapcar #'package-name (list-all-packages))
-                #'string-lessp)))
+  (json-list (list-all-packages)
+             :mapcar #'package-name))
 
 (defjson package-symbols (package)
   (let (sx) 
     (do-external-symbols (s (find-package package)) 
       (push s sx)) 
-    (format nil "[~{~s~^,~}]"
-            (sort (mapcar #'string sx) 
-                  #'string-lessp))))
+    (json-list sx)))
+
+(hunchentoot:define-easy-handler (describe-symbol :uri "/data/describe-symbol")
+                                 (package symbol)
+  (setf (hunchentoot:content-type*) "text/plain")
+  (let ((symbol (find-symbol symbol package)))
+    (with-output-to-string (stream)
+      (describe symbol stream))))

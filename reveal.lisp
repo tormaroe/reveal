@@ -8,13 +8,20 @@
 
 (defun client-script (s)
   (princ "
+    $('#myTabs a').click(function (e) {
+      e.preventDefault()
+      $(this).tab('show')
+    });
+
     var revealApp = new Vue({
       el: '#revealApp',
       data: {
         features: [],
         packages: [],
         selectedPackage: [],
-        packageSymbols: []
+        packageSymbols: [],
+        selectedSymbol: [],
+        symbolDescription: ''
       },
       methods: {
         loadFeatures: function () {
@@ -28,19 +35,20 @@
           this.$http.get('/data/all-packages').then(function (res) {
             that.packages = res.body;
           });
-        },
-        loadPackageSymbols: function (p) {
-          var that = this;
-          console.log('Package selected: ' + p);
-          this.$http.get('/data/package-symbols?package=' + p).then(function (res) {
-            console.dir(res);
-            that.packageSymbols = res.body;
-          });
         }
       },
       watch: {
         selectedPackage: function (val) {
-          this.loadPackageSymbols(val);
+          var that = this;
+          this.$http.get('/data/package-symbols?package=' + val).then(function (res) {
+            that.packageSymbols = res.body;
+          });
+        },
+        selectedSymbol: function (val) {
+          var that = this;
+          this.$http.get('/data/describe-symbol?package=' + this.selectedPackage + '&symbol=' + val).then(function (res) {
+            that.symbolDescription = res.body;
+          });
         }
       },
       mounted: function () {
@@ -60,29 +68,52 @@
 (defun packages-view (s)
   (with-html-output (s)
     (:div
-      (:select :size "10" :v-model "selectedPackage" ;:v-on "change: loadPackageSymbols"
+      (:select :class "form-control" :size "10" :v-model "selectedPackage"
         (:option :v-for "p in packages"
-          (str "{{ p }}")))
-      (str "{{ selectedPackage }}"))))
+          (str "{{ p }}"))))))
 
 (defun package-symbols-view (s)
   (with-html-output (s)
     (:div
-      (:select :size "10"
+      (:select :class "form-control" :size "10" :v-model "selectedSymbol"
         (:option :v-for "s in packageSymbols"
           (str "{{ s }}"))))))
 
+(defun package-browser (s)
+  (with-html-output (s)
+    (:div :class "row"
+      (:div :class "col-md-6"
+        (packages-view s))
+      (:div :class "col-md-6"
+        (package-symbols-view s)))
+    (:div :class "row"
+      (:div :class "col-md-12"
+        (:pre (str "{{ symbolDescription }}"))))))
+
 (define-easy-handler (index :uri "/") ()
   (with-html-output-to-string (s)
-    (:html
-      (:head (:title "Reveal"))
+    (princ "<!DOCTYPE html>" s)
+    (terpri s)
+    (:html :lang "en"
+      (:head (:title "Reveal")
+        (:meta :name "viewport" :content "width=device-width, initial-scale=1")
+        (:link :rel "stylesheet" :href "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"))
       (:body
-        (:div :id "revealApp"
+        (:div :id "revealApp" :class "container"
           (:h1 (str "Reveal"))
-          (packages-view s)
-          (package-symbols-view s)
-          (features-view s)
-          ;(:script :src "https://code.jquery.com/jquery-3.2.1.min.js")
+          (:div 
+            (:ul :id "myTabs" :class "nav nav-tabs" :role "tablist"
+              (:li :role "presentation" :class "active"
+                (:a :href "#symbols" :role "tab" :data-toggle "tab" (str "Symbol browser")))
+              (:li :role "presentation"
+                (:a :href "#features" :role "tab" :data-toggle "tab" (str "Features"))))
+            (:div :class "tab-content"
+              (:div :role "tabpanel" :class "tab-pane active" :id "symbols" 
+                (package-browser s))
+              (:div :role "tabpanel" :class "tab-pane" :id "features" 
+                (features-view s))))
+          (:script :src "https://code.jquery.com/jquery-3.2.1.min.js")
+          (:script :src "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js")
           (:script :src "https://cdnjs.cloudflare.com/ajax/libs/vue/2.3.4/vue.min.js")
           (:script :src "https://cdn.jsdelivr.net/vue.resource/1.3.1/vue-resource.min.js")
           (:script :type "text/javascript" (client-script s)))))))
