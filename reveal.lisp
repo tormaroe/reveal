@@ -119,9 +119,11 @@
           (:script :type "text/javascript" (client-script s)))))))
 
 (defun start (&optional port)
-  (setf *app* (make-instance 'easy-acceptor 
-                             :port (or port *default-port*)))
-  (hunchentoot:start *app*))
+  (let ((port (or port *default-port*))))
+    (setf *app* (make-instance 'easy-acceptor :port port))
+    (hunchentoot:start *app*)
+    (format nil "~&Everything will be revealed at port ~a.~%" port)
+    nil)
 
 (defun stop ()
   (hunchentoot:stop *app*))
