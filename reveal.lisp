@@ -86,28 +86,33 @@
 
 (defun image-details-view (s)
   (with-html-output (s)
+    (:div :class "row" :style "margin-top:10px;"
+      (:div :class "col-md-6" 
+        (:div :class "panel panel-default"
+          (:div :class "panel-heading" (str "Lisp version and OS"))
+          (:div :class "panel-body" 
+            (:table :class "table table-striped table-condensed"
+              (:tr (:td (:b (str "lisp-implementation-type")))
+                   (:td (str "{{ summary['lisp-implementation-type'] }}")))
+              (:tr (:td (:b (str "lisp-implementation-version")))
+                   (:td (str "{{ summary['lisp-implementation-version'] }}")))
+              (:tr (:td (:b (str "machine-instance")))
+                   (:td (str "{{ summary['machine-instance'] }}")))
+              (:tr (:td (:b (str "machine-type")))
+                   (:td (str "{{ summary['machine-type'] }}")))
+              (:tr (:td (:b (str "machine-version")))
+                   (:td (str "{{ summary['machine-version'] }}")))
+              (:tr (:td (:b (str "software-type")))
+                   (:td (str "{{ summary['software-type'] }}")))
+              (:tr (:td (:b (str "software-version")))
+                   (:td (str "{{ summary['software-version'] }}"))))))))
     (:div :class "row"
-      (:table :class "table table-striped"
-        (:tr (:td (:b (str "lisp-implementation-type")))
-             (:td (str "{{ summary['lisp-implementation-type'] }}")))
-        (:tr (:td (:b (str "lisp-implementation-version")))
-             (:td (str "{{ summary['lisp-implementation-version'] }}")))
-        (:tr (:td (:b (str "machine-instance")))
-             (:td (str "{{ summary['machine-instance'] }}")))
-        (:tr (:td (:b (str "machine-type")))
-             (:td (str "{{ summary['machine-type'] }}")))
-        (:tr (:td (:b (str "machine-version")))
-             (:td (str "{{ summary['machine-version'] }}")))
-        (:tr (:td (:b (str "software-type")))
-             (:td (str "{{ summary['software-type'] }}")))
-        (:tr (:td (:b (str "software-version")))
-             (:td (str "{{ summary['software-version'] }}")))))
-    (:div :class "row"
-
-      (:pre 
-        (:a :class "pull-right" :href "#" :|v-on:click| "loadRoom"
-          (:span :class "glyphicon glyphicon-refresh" :aria-hidden "true"))
-        (str "{{ room }}")))))
+      (:div :class "col-md-12"
+        (:h4 (str "Memory usage"))
+        (:pre 
+          (:a :class "pull-right" :href "#" :|v-on:click| "loadRoom"
+            (:span :class "glyphicon glyphicon-refresh" :aria-hidden "true"))
+          (str "{{ room }}"))))))
 
 (defun features-view (s)
   (with-html-output (s)
