@@ -53,7 +53,14 @@
     (with-output-to-string (stream)
       (describe symbol stream))))
 
-(hunchentoot:define-easy-handler (room-details :uri "/data/room") ()
+(defun room-details% ()
   (setf (hunchentoot:content-type*) "text/plain")
   (with-output-to-string (*standard-output*)
     (room)))
+
+(hunchentoot:define-easy-handler (room-details :uri "/data/room") ()
+  (room-details%))
+
+(hunchentoot:define-easy-handler (run-gc :uri "/data/run-gc") ()
+  (sb-ext:gc)
+  (room-details%))

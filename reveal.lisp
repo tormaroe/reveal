@@ -57,6 +57,12 @@
           this.$http.get('/data/package-symbols?package=' + this.selectedPackage + '&all=' + this.includeAllAccessable).then(function (res) {
             that.packageSymbols = res.body;
           });
+        },
+        runGC: function () {
+          var that = this;
+          this.$http.get('/data/run-gc').then(function (res) {
+            that.room = res.body;
+          });
         }
       },
       watch: {
@@ -110,8 +116,12 @@
       (:div :class "col-md-12"
         (:h4 (str "Memory usage"))
         (:pre 
-          (:a :class "pull-right" :href "#" :|v-on:click| "loadRoom"
+          (:a :class "pull-right" :href "#" :|v-on:click| "loadRoom" :alt "Reload"
             (:span :class "glyphicon glyphicon-refresh" :aria-hidden "true"))
+          (str " ")
+          (:a :class "pull-right" :href "#" :|v-on:click| "runGC" :alt "Run garbage collection"
+              :style "margin-right:5px;"
+            (:span :class "glyphicon glyphicon-trash" :aria-hidden "true"))
           (str "{{ room }}"))))))
 
 (defun features-view (s)
@@ -139,7 +149,9 @@
   (with-html-output (s)
     (:div :class "row"
       (:div :class "col-md-6"
-        (:h4 (str "Packages"))
+        (:h4 (str "Packages")
+             (:small (:a :href "#" :|v-on:click| "loadAllPackages" :alt "Reload" :style "margin-left: 10px;"
+               (:span :class "glyphicon glyphicon-refresh" :aria-hidden "true"))))
         (packages-view s))
       (:div :class "col-md-6"
         (:h4 (str "Symbols in package ")
